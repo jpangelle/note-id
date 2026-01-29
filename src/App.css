@@ -6,6 +6,11 @@
   --marker-font: 0.9rem;
 }
 
+/* Rotate Prompt - Hidden by default */
+.rotate-prompt {
+  display: none;
+}
+
 .app {
   max-width: 1200px;
   margin: 0 auto;
@@ -599,61 +604,134 @@ footer p {
 @media (max-height: 500px) and (orientation: landscape) {
   .app {
     padding: 0.5rem 1rem;
+    flex-direction: column;
   }
 
   header {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
   header h1 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    margin-bottom: 0;
   }
 
   .subtitle {
     display: none;
   }
 
+  .sweat-mode-btn {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    margin-top: 0;
+  }
+
+  .timer-container {
+    margin-bottom: 0.25rem;
+  }
+
+  .timer-bar {
+    height: 8px;
+    max-width: 200px;
+  }
+
+  .timer-text {
+    font-size: 0.9rem;
+    min-width: 40px;
+  }
+
   .score-container {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
   }
 
   .score {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
 
-  .score-label {
+  .score-label,
+  .reset-btn {
     display: none;
   }
 
   .fretboard-container {
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 0;
+    margin-bottom: 0.25rem;
+    padding: 0.25rem 0;
+  }
+
+  .string-labels {
+    display: none;
   }
 
   :root {
-    --fret-width: 45px;
-    --string-height: 24px;
-    --marker-size: 20px;
-    --marker-font: 0.7rem;
+    --fret-width: calc((100vw - 2rem) / 14);
+    --string-height: 22px;
+    --marker-size: 18px;
+    --marker-font: 0.65rem;
+  }
+
+  .fretboard {
+    padding: 0.25rem;
+  }
+
+  .fret-numbers {
+    margin-bottom: 0.1rem;
+  }
+
+  .fret-number {
+    font-size: 0.5rem;
+  }
+
+  .fret-markers {
+    margin-top: 0.25rem;
+  }
+
+  .marker-dot {
+    width: 5px;
+    height: 5px;
   }
 
   .question {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
   }
 
   .feedback {
-    padding: 0.4rem 1rem;
-    margin-bottom: 0.5rem;
+    padding: 0.3rem 0.75rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
   }
 
   .note-buttons {
-    gap: 0.35rem;
-    margin-bottom: 0.5rem;
-    max-width: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+    max-width: 100%;
+    padding: 0 0.5rem;
   }
 
   .note-btn {
-    min-height: 38px;
+    min-height: 32px;
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 45px;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.85rem;
+    aspect-ratio: unset;
+  }
+
+  .flat-label {
+    display: none;
+  }
+
+  .next-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
   }
 
   footer {
@@ -680,5 +758,66 @@ footer p {
 
   .note-marker:active {
     transform: scale(1.15);
+  }
+}
+
+/* Mobile Portrait - Show rotate prompt */
+@media (max-width: 650px) and (orientation: portrait) {
+  .rotate-prompt {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .rotate-content {
+    text-align: center;
+    color: white;
+  }
+
+  .rotate-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    animation: rotate-phone 2s ease-in-out infinite;
+  }
+
+  @keyframes rotate-phone {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-15deg);
+    }
+    75% {
+      transform: rotate(90deg);
+    }
+  }
+
+  .rotate-content p {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .rotate-arrow {
+    font-size: 3rem;
+    animation: pulse-arrow 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-arrow {
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
   }
 }

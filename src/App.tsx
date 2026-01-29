@@ -297,6 +297,15 @@ function App() {
 
   return (
     <div className="app">
+      {/* Rotate prompt for mobile portrait */}
+      <div className="rotate-prompt">
+        <div className="rotate-content">
+          <div className="rotate-icon">📱</div>
+          <p>Rotate your phone for the best experience</p>
+          <div className="rotate-arrow">↻</div>
+        </div>
+      </div>
+
       <header>
         <h1>🎸 Fretboard Trainer</h1>
         <p className="subtitle">Learn the notes on your guitar fretboard</p>
