@@ -154,6 +154,34 @@ function getRandomPosition(): Position {
 
 const SWEAT_MODE_TIME = 5; // seconds
 
+// Fun melody - a happy, bouncy tune across the fretboard
+const FUN_MELODY: { string: number; fret: number; duration: number }[] = [
+  // Happy opening - G major vibes
+  { string: 2, fret: 0, duration: 250 }, // D
+  { string: 3, fret: 0, duration: 250 }, // G
+  { string: 4, fret: 0, duration: 250 }, // B
+  { string: 3, fret: 0, duration: 250 }, // G
+  // Climb up!
+  { string: 5, fret: 0, duration: 200 }, // E
+  { string: 5, fret: 3, duration: 200 }, // G
+  { string: 5, fret: 5, duration: 300 }, // A
+  // Bounce around
+  { string: 4, fret: 3, duration: 200 }, // D
+  { string: 5, fret: 5, duration: 200 }, // A
+  { string: 4, fret: 3, duration: 200 }, // D
+  { string: 5, fret: 3, duration: 300 }, // G
+  // Fun descending run
+  { string: 3, fret: 4, duration: 180 }, // B
+  { string: 3, fret: 2, duration: 180 }, // A
+  { string: 3, fret: 0, duration: 180 }, // G
+  { string: 2, fret: 2, duration: 180 }, // E
+  { string: 2, fret: 0, duration: 300 }, // D
+  // Big finish!
+  { string: 1, fret: 2, duration: 250 }, // B
+  { string: 2, fret: 2, duration: 250 }, // E
+  { string: 3, fret: 0, duration: 400 }, // G (hold)
+];
+
 function App() {
   const [currentPosition, setCurrentPosition] =
     useState<Position>(getRandomPosition);
@@ -166,8 +194,11 @@ function App() {
   const [sweatMode, setSweatMode] = useState(false);
   const [studyMode, setStudyMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(SWEAT_MODE_TIME);
+  const [easterEggPlaying, setEasterEggPlaying] = useState(false);
+  const [easterEggNote, setEasterEggNote] = useState<Position | null>(null);
   const isFirstRender = useRef(true);
   const timerRef = useRef<number | null>(null);
+  const easterEggRef = useRef<boolean>(false);
 
   const correctNote = getNoteAt(currentPosition.string, currentPosition.fret);
 
@@ -302,6 +333,30 @@ function App() {
     }
   }, [studyMode, clearTimer]);
 
+  // Easter egg - play fun melody
+  const playEasterEgg = useCallback(async () => {
+    if (easterEggRef.current) return; // Already playing
+
+    easterEggRef.current = true;
+    setEasterEggPlaying(true);
+    // Pause sweat mode timer during easter egg
+    clearTimer();
+
+    for (let i = 0; i < FUN_MELODY.length; i++) {
+      if (!easterEggRef.current) break; // Stop if cancelled
+
+      const note = FUN_MELODY[i];
+      setEasterEggNote({ string: note.string, fret: note.fret });
+      playNote(note.string, note.fret);
+
+      await new Promise((resolve) => setTimeout(resolve, note.duration));
+    }
+
+    setEasterEggNote(null);
+    setEasterEggPlaying(false);
+    easterEggRef.current = false;
+  }, [clearTimer]);
+
   // Fret markers (dots on frets 3, 5, 7, 9, 12)
   const fretMarkers = [3, 5, 7, 9, 12];
   const doubleFretMarkers = [12];
@@ -318,7 +373,16 @@ function App() {
       </div>
 
       <header>
-        <h1>🎸 Fretboard Trainer</h1>
+        <h1>
+          <span
+            className={`guitar-emoji ${easterEggPlaying ? "playing" : ""}`}
+            onClick={playEasterEgg}
+            title="🎵"
+          >
+            🎸
+          </span>{" "}
+          Fretboard Trainer
+        </h1>
         <p className="subtitle">Learn the notes on your guitar fretboard</p>
         <div className="mode-buttons">
           <button
@@ -408,12 +472,20 @@ function App() {
                       {fret > 0 && <div className="fret-wire" />}
                       {studyMode ? (
                         <div
-                          className={`study-note ${isNatural ? "natural" : "sharp"}`}
+                          className={`study-note ${isNatural ? "natural" : "sharp"} ${
+                            easterEggNote?.string === stringIndex &&
+                            easterEggNote?.fret === fret
+                              ? "spooky-active"
+                              : ""
+                          }`}
                           onClick={() => playNote(stringIndex, fret)}
                           title={`${note}${FLAT_EQUIVALENTS[note] ? ` / ${FLAT_EQUIVALENTS[note]}` : ""}`}
                         >
                           {note}
                         </div>
+                      ) : easterEggNote?.string === stringIndex &&
+                        easterEggNote?.fret === fret ? (
+                        <div className="spooky-note">{note}</div>
                       ) : (
                         isTarget && (
                           <div
