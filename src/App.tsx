@@ -164,6 +164,7 @@ function App() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [showAnswer, setShowAnswer] = useState(false);
   const [sweatMode, setSweatMode] = useState(false);
+  const [studyMode, setStudyMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(SWEAT_MODE_TIME);
   const isFirstRender = useRef(true);
   const timerRef = useRef<number | null>(null);
@@ -288,8 +289,18 @@ function App() {
 
   const toggleSweatMode = useCallback(() => {
     setSweatMode((prev) => !prev);
+    setStudyMode(false); // Disable study mode when enabling sweat mode
     setTimeLeft(SWEAT_MODE_TIME);
   }, []);
+
+  const toggleStudyMode = useCallback(() => {
+    setStudyMode((prev) => !prev);
+    if (!studyMode) {
+      // Turning on study mode - disable sweat mode and clear timer
+      setSweatMode(false);
+      clearTimer();
+    }
+  }, [studyMode, clearTimer]);
 
   // Fret markers (dots on frets 3, 5, 7, 9, 12)
   const fretMarkers = [3, 5, 7, 9, 12];
@@ -309,12 +320,20 @@ function App() {
       <header>
         <h1>🎸 Fretboard Trainer</h1>
         <p className="subtitle">Learn the notes on your guitar fretboard</p>
-        <button
-          className={`sweat-mode-btn ${sweatMode ? "active" : ""}`}
-          onClick={toggleSweatMode}
-        >
-          🔥 Sweat Mode {sweatMode ? "ON" : "OFF"}
-        </button>
+        <div className="mode-buttons">
+          <button
+            className={`mode-btn study-btn ${studyMode ? "active" : ""}`}
+            onClick={toggleStudyMode}
+          >
+            📖 Study Mode
+          </button>
+          <button
+            className={`mode-btn sweat-btn ${sweatMode ? "active" : ""}`}
+            onClick={toggleSweatMode}
+          >
+            🔥 Sweat Mode
+          </button>
+        </div>
       </header>
 
       {sweatMode && !showAnswer && (
@@ -376,23 +395,35 @@ function App() {
                     currentPosition.fret === fret;
                   const note = getNoteAt(stringIndex, fret);
 
+                  const isNatural = !note.includes("#");
+
                   return (
                     <div
                       key={fret}
                       className={`fret ${fret === 0 ? "open-string" : ""} ${
-                        isTarget ? "target" : ""
+                        isTarget && !studyMode ? "target" : ""
                       } ${showAnswer && isTarget ? "show-answer" : ""}`}
                     >
                       <div className="string-line" />
                       {fret > 0 && <div className="fret-wire" />}
-                      {isTarget && (
+                      {studyMode ? (
                         <div
-                          className="note-marker"
-                          onClick={handlePlayNote}
-                          title="Click to play note"
+                          className={`study-note ${isNatural ? "natural" : "sharp"}`}
+                          onClick={() => playNote(stringIndex, fret)}
+                          title={`${note}${FLAT_EQUIVALENTS[note] ? ` / ${FLAT_EQUIVALENTS[note]}` : ""}`}
                         >
-                          {showAnswer ? getNoteDisplay(note) : "?"}
+                          {note}
                         </div>
+                      ) : (
+                        isTarget && (
+                          <div
+                            className="note-marker"
+                            onClick={handlePlayNote}
+                            title="Click to play note"
+                          >
+                            {showAnswer ? getNoteDisplay(note) : "?"}
+                          </div>
+                        )
                       )}
                     </div>
                   );
@@ -419,51 +450,68 @@ function App() {
         </div>
       </div>
 
-      <div className="question">
-        <p>
-          What note is at{" "}
-          <strong>String {STRING_NAMES[currentPosition.string]}</strong>,{" "}
-          <strong>
-            {currentPosition.fret === 0
-              ? "Open"
-              : `Fret ${currentPosition.fret}`}
-          </strong>
-          ?
-        </p>
-      </div>
-
-      {feedback && (
-        <div
-          className={`feedback ${feedback.correct ? "correct" : "incorrect"}`}
-        >
-          {feedback.message}
+      {studyMode ? (
+        <div className="study-info">
+          <p>Click any note on the fretboard to hear it</p>
+          <div className="study-legend">
+            <span className="legend-item">
+              <span className="legend-dot natural"></span> Natural notes (A, B,
+              C, D, E, F, G)
+            </span>
+            <span className="legend-item">
+              <span className="legend-dot sharp"></span> Sharps/Flats
+            </span>
+          </div>
         </div>
-      )}
+      ) : (
+        <>
+          <div className="question">
+            <p>
+              What note is at{" "}
+              <strong>String {STRING_NAMES[currentPosition.string]}</strong>,{" "}
+              <strong>
+                {currentPosition.fret === 0
+                  ? "Open"
+                  : `Fret ${currentPosition.fret}`}
+              </strong>
+              ?
+            </p>
+          </div>
 
-      <div className="note-buttons">
-        {NOTES.map((note) => (
-          <button
-            key={note}
-            className="note-btn"
-            onClick={() => handleGuess(note)}
-            disabled={showAnswer}
-          >
-            {FLAT_EQUIVALENTS[note] ? (
-              <>
-                {note}
-                <span className="flat-label">{FLAT_EQUIVALENTS[note]}</span>
-              </>
-            ) : (
-              note
-            )}
-          </button>
-        ))}
-      </div>
+          {feedback && (
+            <div
+              className={`feedback ${feedback.correct ? "correct" : "incorrect"}`}
+            >
+              {feedback.message}
+            </div>
+          )}
 
-      {showAnswer && (
-        <button className="next-btn" onClick={handleNextNote}>
-          Next Note →
-        </button>
+          <div className="note-buttons">
+            {NOTES.map((note) => (
+              <button
+                key={note}
+                className="note-btn"
+                onClick={() => handleGuess(note)}
+                disabled={showAnswer}
+              >
+                {FLAT_EQUIVALENTS[note] ? (
+                  <>
+                    {note}
+                    <span className="flat-label">{FLAT_EQUIVALENTS[note]}</span>
+                  </>
+                ) : (
+                  note
+                )}
+              </button>
+            ))}
+          </div>
+
+          {showAnswer && (
+            <button className="next-btn" onClick={handleNextNote}>
+              Next Note →
+            </button>
+          )}
+        </>
       )}
 
       <footer>
